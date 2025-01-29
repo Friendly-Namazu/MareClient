@@ -1,9 +1,9 @@
 {
-  "Author": "darkarchon",
-  "Name": "Mare Synchronos",
+  "Author": "FriendlyNamazu",
+  "Name": "Namazu Sync",
   "Punchline": "Let others see you as you see yourself.",
-  "Description": "This plugin will synchronize your Penumbra mods and current Glamourer state with other paired clients automatically.",
-  "InternalName": "mareSynchronos",
+  "Description": "This plugin will synchronize your Penumbra mods and current Glamourer state with other paired clients automatically.\nForked from \"MareSynchronos\" by darkarchon",
+  "InternalName": "namazuSync",
   "ApplicableVersion": "any",
   "Tags": [
     "customization"

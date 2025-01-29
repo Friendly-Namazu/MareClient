@@ -1,7 +1,8 @@
-# Mare Synchronos Dalamud Plugin
+# Namazu Sync Dalamud Plugin
 
-Available at [This dalamud Repo](https://raw.githubusercontent.com/Penumbra-Sync/repo/main/plogonmaster.json)
+Currently unavailable.
+Official server does not yet exist.
 
-# [Mare Synchronos Discord](https://discord.gg/5HVveFefcB)
+# [Namazu Sync Discord](https://discord.gg/Tgbt2qaydQ)
 
 Readme TBD

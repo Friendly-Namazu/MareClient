@@ -74,7 +74,7 @@ public sealed class Plugin : IDalamudPlugin
         {
             lb.ClearProviders();
             lb.AddDalamudLogging(pluginLog, gameData.HasModifiedGameDataFiles);
-            lb.AddFile(Path.Combine(traceDir, $"mare-trace-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}.log"), (opt) =>
+            lb.AddFile(Path.Combine(traceDir, $"namazu-trace-{DateTime.Now:yyyy-MM-dd-HH-mm-ss}.log"), (opt) =>
             {
                 opt.Append = true;
                 opt.RollingFilesConvention = FileLoggerOptions.FileRollingConvention.Ascending;
@@ -85,7 +85,7 @@ public sealed class Plugin : IDalamudPlugin
         })
         .ConfigureServices(collection =>
         {
-            collection.AddSingleton(new WindowSystem("MareSynchronos"));
+            collection.AddSingleton(new WindowSystem("NamazuSync"));
             collection.AddSingleton<FileDialogManager>();
             collection.AddSingleton(new Dalamud.Localization("MareSynchronos.Localization.", "", useEmbedded: true));
 
@@ -164,7 +164,7 @@ public sealed class Plugin : IDalamudPlugin
             {
                 var httpClient = new HttpClient();
                 var ver = Assembly.GetExecutingAssembly().GetName().Version;
-                httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("MareSynchronos", ver!.Major + "." + ver!.Minor + "." + ver!.Build));
+                httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("NamazuSync", ver!.Major + "." + ver!.Minor + "." + ver!.Build));
                 return httpClient;
             });
             collection.AddSingleton((s) => new MareConfigService(pluginInterface.ConfigDirectory.FullName));

@@ -22,7 +22,7 @@ namespace MareSynchronos.WebAPI;
 public sealed partial class ApiController : DisposableMediatorSubscriberBase, IMareHubClient
 {
     public const string MainServer = "Lunae Crescere Incipientis (Official Central Server)";
-    public const string MainServiceUri = "wss://maresynchronos.com";
+    public const string MainServiceUri = "wss://maresynchronos.invalid";
 
     private readonly DalamudUtilService _dalamudUtil;
     private readonly HubFactory _hubFactory;
@@ -134,7 +134,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
             {
                 Logger.LogWarning("Multiple secret keys for current character");
                 _connectionDto = null;
-                Mediator.Publish(new NotificationMessage("Multiple Identical Characters detected", "Your Service configuration has multiple characters with the same name and world set up. Delete the duplicates in the character management to be able to connect to Mare.",
+                Mediator.Publish(new NotificationMessage("Multiple Identical Characters detected", "Your Service configuration has multiple characters with the same name and world set up. Delete the duplicates in the character management to be able to connect to Namazu.",
                     NotificationType.Error));
                 await StopConnectionAsync(ServerState.MultiChara).ConfigureAwait(false);
                 _connectionCancellationTokenSource?.Cancel();
@@ -157,7 +157,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
             {
                 Logger.LogWarning("Multiple secret keys for current character");
                 _connectionDto = null;
-                Mediator.Publish(new NotificationMessage("Multiple Identical Characters detected", "Your Service configuration has multiple characters with the same name and world set up. Delete the duplicates in the character management to be able to connect to Mare.",
+                Mediator.Publish(new NotificationMessage("Multiple Identical Characters detected", "Your Service configuration has multiple characters with the same name and world set up. Delete the duplicates in the character management to be able to connect to Namazu.",
                     NotificationType.Error));
                 await StopConnectionAsync(ServerState.MultiChara).ConfigureAwait(false);
                 _connectionCancellationTokenSource?.Cancel();
@@ -240,7 +240,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
                         Mediator.Publish(new NotificationMessage("Client incompatible",
                             $"Your client is outdated ({currentClientVer.Major}.{currentClientVer.Minor}.{currentClientVer.Build}), current is: " +
                             $"{_connectionDto.CurrentClientVersion.Major}.{_connectionDto.CurrentClientVersion.Minor}.{_connectionDto.CurrentClientVersion.Build}. " +
-                            $"This client version is incompatible and will not be able to connect. Please update your Mare Synchronos client.",
+                            $"This client version is incompatible and will not be able to connect. Please update your Namazu Sync client.",
                             NotificationType.Error));
                     }
                     await StopConnectionAsync(ServerState.VersionMisMatch).ConfigureAwait(false);
@@ -252,7 +252,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
                     Mediator.Publish(new NotificationMessage("Client outdated",
                         $"Your client is outdated ({currentClientVer.Major}.{currentClientVer.Minor}.{currentClientVer.Build}), current is: " +
                         $"{_connectionDto.CurrentClientVersion.Major}.{_connectionDto.CurrentClientVersion.Minor}.{_connectionDto.CurrentClientVersion.Build}. " +
-                        $"Please keep your Mare Synchronos client up-to-date.",
+                        $"Please keep your Namazu Sync client up-to-date.",
                         NotificationType.Warning));
                 }
 
@@ -274,7 +274,7 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
                     {
                         Mediator.Publish(new NotificationMessage("Model LOD is enabled",
                             "You have \"Use low-detail models on distant objects (LOD)\" enabled. Having model LOD enabled is known to be a reason to cause " +
-                            "random crashes when loading in or rendering modded pairs. Disable LOD while using Mare: " +
+                            "random crashes when loading in or rendering modded pairs. Disable LOD while using Namazu: " +
                             "Go to XIV Menu -> System Configuration -> Graphics Settings and disable the model LOD option.", NotificationType.Warning, TimeSpan.FromSeconds(15)));
                     }
                 }

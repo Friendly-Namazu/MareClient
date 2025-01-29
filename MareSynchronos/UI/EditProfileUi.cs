@@ -33,7 +33,7 @@ public class EditProfileUi : WindowMediatorSubscriberBase
     public EditProfileUi(ILogger<EditProfileUi> logger, MareMediator mediator,
         ApiController apiController, UiSharedService uiSharedService, FileDialogManager fileDialogManager,
         MareProfileManager mareProfileManager, PerformanceCollectorService performanceCollectorService)
-        : base(logger, mediator, "Mare Synchronos Edit Profile###MareSynchronosEditProfileUI", performanceCollectorService)
+        : base(logger, mediator, "Namazu Sync Edit Profile###MareSynchronosEditProfileUI", performanceCollectorService)
     {
         IsOpen = false;
         this.SizeConstraints = new()
@@ -124,9 +124,11 @@ public class EditProfileUi : WindowMediatorSubscriberBase
 
         ImGui.TextWrapped($"- All users that are paired and unpaused with you will be able to see your profile picture and description.{Environment.NewLine}" +
             $"- Other users have the possibility to report your profile for breaking the rules.{Environment.NewLine}" +
-            $"- !!! AVOID: anything as profile image that can be considered highly illegal or obscene (bestiality, anything that could be considered a sexual act with a minor (that includes Lalafells), etc.){Environment.NewLine}" +
-            $"- !!! AVOID: slurs of any kind in the description that can be considered highly offensive{Environment.NewLine}" +
-            $"- In case of valid reports from other users this can lead to disabling your profile forever or terminating your Mare account indefinitely.{Environment.NewLine}" +
+            $"- !!! AVOID: Any image that could be confused for a real life image{Environment.NewLine}" +
+            $"- !!! AVOID: AI generated \"\"\"art\"\"\"{Environment.NewLine}" +
+            $"- !!! AVOID: Slurs of any kind that can be considered highly offensive{Environment.NewLine}" +
+            $"- !!! AVOID: Political statements that can be considered highly offensive{Environment.NewLine}" +
+            $"- In case of valid reports from other users this can lead to disabling your profile forever or terminating your Namazu account indefinitely.{Environment.NewLine}" +
             $"- Judgement of your profile validity from reports through staff is not up to debate and the decisions to disable your profile/account permanent.{Environment.NewLine}" +
             $"- If your profile picture or profile description could be considered NSFW, enable the toggle below.");
         ImGui.Separator();
