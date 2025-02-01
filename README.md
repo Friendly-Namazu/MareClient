@@ -1,8 +1,6 @@
 # Namazu Sync Dalamud Plugin
 
-Currently unavailable.
-Official server does not yet exist.
+available at `https://raw.githubusercontent.com/Friendly-Namazu/dalamud-repo/main/repo.json`\
+discord server: [Namazu Sync Discord](https://discord.gg/Tgbt2qaydQ)
 
-# [Namazu Sync Discord](https://discord.gg/Tgbt2qaydQ)
-
-Readme TBD
+# Readme TBD
