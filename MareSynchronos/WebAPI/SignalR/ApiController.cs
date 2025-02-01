@@ -21,8 +21,8 @@ namespace MareSynchronos.WebAPI;
 #pragma warning disable MA0040
 public sealed partial class ApiController : DisposableMediatorSubscriberBase, IMareHubClient
 {
-    public const string MainServer = "Lunae Crescere Incipientis (Official Central Server)";
-    public const string MainServiceUri = "wss://maresynchronos.invalid";
+    public const string MainServer = "Gyoshin (Official Central Server)";
+    public const string MainServiceUri = "wss://namazu.gay";
 
     private readonly DalamudUtilService _dalamudUtil;
     private readonly HubFactory _hubFactory;
