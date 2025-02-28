@@ -49,6 +49,19 @@ internal sealed partial class CharaDataHubUi : WindowMediatorSubscriberBase
     private bool _openMcdOnlineOnNextRun = false;
     private bool _readExport;
     private string _selectedDtoId = string.Empty;
+    private string SelectedDtoId
+    {
+        get => _selectedDtoId;
+        set
+        {
+            if (!string.Equals(_selectedDtoId, value, StringComparison.Ordinal))
+            {
+                _charaDataManager.UploadTask = null;
+                _selectedDtoId = value;
+            }
+
+        }
+    }
     private string _selectedSpecificUserIndividual = string.Empty;
     private string _selectedSpecificGroupIndividual = string.Empty;
     private string _sharedWithYouDescriptionFilter = string.Empty;
@@ -80,7 +93,16 @@ internal sealed partial class CharaDataHubUi : WindowMediatorSubscriberBase
         _pairManager = pairManager;
         _charaDataGposeTogetherManager = charaDataGposeTogetherManager;
         Mediator.Subscribe<GposeStartMessage>(this, (_) => IsOpen |= _configService.Current.OpenMareHubOnGposeStart);
+        Mediator.Subscribe<OpenCharaDataHubWithFilterMessage>(this, (msg) =>
+        {
+            IsOpen = true;
+            _openDataApplicationShared = true;
+            _sharedWithYouOwnerFilter = msg.UserData.AliasOrUID;
+            UpdateFilteredItems();
+        });
     }
+
+    private bool _openDataApplicationShared = false;
 
     public string CharaName(string name)
     {
@@ -102,7 +124,7 @@ internal sealed partial class CharaDataHubUi : WindowMediatorSubscriberBase
         }
 
         _closalCts.Cancel();
-        _selectedDtoId = string.Empty;
+        SelectedDtoId = string.Empty;
         _filteredDict = null;
         _sharedWithYouOwnerFilter = string.Empty;
         _importCode = string.Empty;
@@ -194,7 +216,7 @@ internal sealed partial class CharaDataHubUi : WindowMediatorSubscriberBase
             }
         }
 
-        using (var applicationTabItem = ImRaii.TabItem("Data Application"))
+        using (var applicationTabItem = ImRaii.TabItem("Data Application", _openDataApplicationShared ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None))
         {
             if (applicationTabItem)
             {
@@ -230,7 +252,7 @@ internal sealed partial class CharaDataHubUi : WindowMediatorSubscriberBase
                     }
                 }
 
-                using (var gposeTabItem = ImRaii.TabItem("Apply Data"))
+                using (var gposeTabItem = ImRaii.TabItem("Apply Data", _openDataApplicationShared ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None))
                 {
                     if (gposeTabItem)
                     {
@@ -691,7 +713,7 @@ internal sealed partial class CharaDataHubUi : WindowMediatorSubscriberBase
             }
         }
 
-        using (var sharedWithYouTabItem = ImRaii.TabItem("Shared With You"))
+        using (var sharedWithYouTabItem = ImRaii.TabItem("Shared With You", _openDataApplicationShared ? ImGuiTabItemFlags.SetSelected : ImGuiTabItemFlags.None))
         {
             using var id = ImRaii.PushId("sharedWithYouTab");
             if (sharedWithYouTabItem)
@@ -705,8 +727,12 @@ internal sealed partial class CharaDataHubUi : WindowMediatorSubscriberBase
 
                 DrawUpdateSharedDataButton();
 
-
-                UiSharedService.DrawTree("Filters", () =>
+                int activeFilters = 0;
+                if (!string.IsNullOrEmpty(_sharedWithYouOwnerFilter)) activeFilters++;
+                if (!string.IsNullOrEmpty(_sharedWithYouDescriptionFilter)) activeFilters++;
+                if (_sharedWithYouDownloadableFilter) activeFilters++;
+                string filtersText = activeFilters == 0 ? "Filters" : $"Filters ({activeFilters} active)";
+                UiSharedService.DrawTree($"{filtersText}##filters", () =>
                 {
                     var filterWidth = ImGui.GetWindowContentRegionMax().X - ImGui.GetWindowContentRegionMin().X;
                     ImGui.SetNextItemWidth(filterWidth);
@@ -745,6 +771,9 @@ internal sealed partial class CharaDataHubUi : WindowMediatorSubscriberBase
                 ImGuiHelpers.ScaledDummy(5);
                 foreach (var entry in _filteredDict ?? [])
                 {
+                    bool isFilteredAndHasToBeOpened = entry.Key.Contains(_sharedWithYouOwnerFilter) && _openDataApplicationShared;
+                    if (isFilteredAndHasToBeOpened)
+                        ImGui.SetNextItemOpen(isFilteredAndHasToBeOpened);
                     UiSharedService.DrawTree($"{entry.Key} - [{entry.Value.Count} Character Data Sets]##{entry.Key}", () =>
                     {
                         foreach (var data in entry.Value)
@@ -753,6 +782,8 @@ internal sealed partial class CharaDataHubUi : WindowMediatorSubscriberBase
                         }
                         ImGuiHelpers.ScaledDummy(5);
                     });
+                    if (isFilteredAndHasToBeOpened)
+                        _openDataApplicationShared = false;
                 }
             }
         }
@@ -926,7 +957,7 @@ internal sealed partial class CharaDataHubUi : WindowMediatorSubscriberBase
                 {
                     if (_uiSharedService.IconTextButton(FontAwesomeIcon.Edit, "Open in MCD Online Editor"))
                     {
-                        _selectedDtoId = data.Id;
+                        SelectedDtoId = data.Id;
                         _openMcdOnlineOnNextRun = true;
                     }
                 }

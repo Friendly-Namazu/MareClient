@@ -45,15 +45,13 @@ public record MoodlesMessage(IntPtr Address) : MessageBase;
 public record PetNamesReadyMessage : MessageBase;
 public record PetNamesMessage(string PetNicknamesData) : MessageBase;
 public record HonorificReadyMessage : MessageBase;
-public record PlayerChangedMessage(CharacterData Data) : MessageBase;
-public record CharacterChangedMessage(GameObjectHandler GameObjectHandler) : MessageBase;
 public record TransientResourceChangedMessage(IntPtr Address) : MessageBase;
 public record HaltScanMessage(string Source) : MessageBase;
 public record ResumeScanMessage(string Source) : MessageBase;
 public record NotificationMessage
     (string Title, string Message, NotificationType Type, TimeSpan? TimeShownOnScreen = null) : MessageBase;
-public record CreateCacheForObjectMessage(GameObjectHandler ObjectToCreateFor) : MessageBase;
-public record ClearCacheForObjectMessage(GameObjectHandler ObjectToCreateFor) : MessageBase;
+public record CreateCacheForObjectMessage(GameObjectHandler ObjectToCreateFor) : SameThreadMessage;
+public record ClearCacheForObjectMessage(GameObjectHandler ObjectToCreateFor) : SameThreadMessage;
 public record CharacterDataCreatedMessage(CharacterData CharacterData) : SameThreadMessage;
 public record CharacterDataAnalyzedMessage : MessageBase;
 public record PenumbraStartRedrawMessage(IntPtr Address) : MessageBase;
@@ -73,7 +71,6 @@ public record ProfilePopoutToggle(Pair? Pair) : MessageBase;
 public record CompactUiChange(Vector2 Size, Vector2 Position) : MessageBase;
 public record ProfileOpenStandaloneMessage(Pair Pair) : MessageBase;
 public record RemoveWindowMessage(WindowMediatorSubscriberBase Window) : MessageBase;
-public record PairHandlerVisibleMessage(PairHandler Player) : MessageBase;
 public record RefreshUiMessage : MessageBase;
 public record OpenBanUserPopupMessage(Pair PairToBan, GroupFullInfoDto GroupFullInfoDto) : MessageBase;
 public record OpenCensusPopupMessage() : MessageBase;
@@ -95,5 +92,6 @@ public record GPoseLobbyUserLeave(UserData UserData) : MessageBase;
 public record GPoseLobbyReceiveCharaData(CharaDataDownloadDto CharaDataDownloadDto) : MessageBase;
 public record GPoseLobbyReceivePoseData(UserData UserData, PoseData PoseData) : MessageBase;
 public record GPoseLobbyReceiveWorldData(UserData UserData, WorldData WorldData) : MessageBase;
+public record OpenCharaDataHubWithFilterMessage(UserData UserData) : MessageBase;
 #pragma warning restore S2094
 #pragma warning restore MA0048 // File name must match type name

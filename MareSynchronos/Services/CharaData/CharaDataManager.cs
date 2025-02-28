@@ -106,7 +106,7 @@ public sealed partial class CharaDataManager : DisposableMediatorSubscriberBase
     public IDictionary<UserData, List<CharaDataMetaInfoExtendedDto>> SharedWithYouData => _sharedWithYouData;
     public Task? UiBlockingComputation { get; private set; }
     public ValueProgress<string>? UploadProgress { get; private set; }
-    public Task<(string Output, bool Success)>? UploadTask { get; private set; }
+    public Task<(string Output, bool Success)>? UploadTask { get; set; }
     public bool BrioAvailable => _ipcManager.Brio.APIAvailable;
 
     public Task ApplyCharaData(CharaDataDownloadDto dataDownloadDto, string charaName)
@@ -608,6 +608,18 @@ public sealed partial class CharaDataManager : DisposableMediatorSubscriberBase
         return _metaInfoCache.TryGetValue(key, out metaInfo);
     }
 
+    public void UploadAllCharaData()
+    {
+        UiBlockingComputation = Task.Run(async () =>
+        {
+            foreach (var updateDto in _updateDtos.Values.Where(u => u.HasChanges))
+            {
+                CharaUpdateTask = CharaUpdateAsync(updateDto);
+                await CharaUpdateTask.ConfigureAwait(false);
+            }
+        });
+    }
+
     public void UploadCharaData(string id)
     {
         var hasUpdateDto = _updateDtos.TryGetValue(id, out var updateDto);
@@ -621,8 +633,31 @@ public sealed partial class CharaDataManager : DisposableMediatorSubscriberBase
         var hasDto = _ownCharaData.TryGetValue(id, out var dto);
         if (!hasDto || dto == null) return;
 
-        var missingFileList = dto.MissingFiles.ToList();
-        UiBlockingComputation = UploadTask = UploadFiles(missingFileList, async () =>
+        UiBlockingComputation = UploadTask = RestoreThenUpload(dto);
+    }
+
+    private async Task<(string Output, bool Success)> RestoreThenUpload(CharaDataFullExtendedDto dto)
+    {
+        var newDto = await _apiController.CharaDataAttemptRestore(dto.Id).ConfigureAwait(false);
+        if (newDto == null)
+        {
+            _ownCharaData.Remove(dto.Id);
+            _metaInfoCache.Remove(dto.FullId, out _);
+            UiBlockingComputation = null;
+            return ("No such DTO found", false);
+        }
+
+        await AddOrUpdateDto(newDto).ConfigureAwait(false);
+        _ = _ownCharaData.TryGetValue(dto.Id, out var extendedDto);
+
+        if (!extendedDto!.HasMissingFiles)
+        {
+            UiBlockingComputation = null;
+            return ("Restored successfully", true);
+        }
+
+        var missingFileList = extendedDto!.MissingFiles.ToList();
+        var result = await UploadFiles(missingFileList, async () =>
         {
             var newFilePaths = dto.FileGamePaths;
             foreach (var missing in missingFileList)
@@ -635,7 +670,10 @@ public sealed partial class CharaDataManager : DisposableMediatorSubscriberBase
             };
             var res = await _apiController.CharaDataUpdate(updateDto).ConfigureAwait(false);
             await AddOrUpdateDto(res).ConfigureAwait(false);
-        });
+        }).ConfigureAwait(false);
+
+        UiBlockingComputation = null;
+        return result;
     }
 
     internal void ApplyDataToSelf(CharaDataFullExtendedDto dataDto)
@@ -877,7 +915,6 @@ public sealed partial class CharaDataManager : DisposableMediatorSubscriberBase
 
         var res = await _apiController.CharaDataUpdate(baseUpdateDto).ConfigureAwait(false);
         await AddOrUpdateDto(res).ConfigureAwait(false);
-        CharaUpdateTask = null;
     }
 
     private async Task DownloadAndAplyDataAsync(string charaName, CharaDataDownloadDto charaDataDownloadDto, CharaDataMetaInfoDto metaInfo, bool autoRevert = true)
@@ -966,8 +1003,7 @@ public sealed partial class CharaDataManager : DisposableMediatorSubscriberBase
         }
         finally
         {
-            UploadTask = null;
-            UploadProgress = null;
+            UiBlockingComputation = null;
         }
     }
 

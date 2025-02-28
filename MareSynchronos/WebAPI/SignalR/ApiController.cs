@@ -39,7 +39,6 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
     private HubConnection? _mareHub;
     private ServerState _serverState;
     private CensusUpdateMessage? _lastCensus;
-    private readonly SemaphoreSlim _zoneSwitchSemaphore = new(1, 1);
 
     public ApiController(ILogger<ApiController> logger, HubFactory hubFactory, DalamudUtilService dalamudUtil,
         PairManager pairManager, ServerConfigurationManager serverManager, MareMediator mediator,
@@ -61,8 +60,6 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
         Mediator.Subscribe<CyclePauseMessage>(this, (msg) => _ = CyclePauseAsync(msg.UserData));
         Mediator.Subscribe<CensusUpdateMessage>(this, (msg) => _lastCensus = msg);
         Mediator.Subscribe<PauseMessage>(this, (msg) => _ = PauseAsync(msg.UserData));
-        Mediator.Subscribe<ZoneSwitchStartMessage>(this, (msg) => _zoneSwitchSemaphore.Wait());
-        Mediator.Subscribe<ZoneSwitchEndMessage>(this, (msg) => _zoneSwitchSemaphore.Release());
 
         ServerState = ServerState.Offline;
 
@@ -264,22 +261,29 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
                     Logger.LogError("Detected modified game files on connection");
                     if (!_mareConfigService.Current.DebugStopWhining)
                         Mediator.Publish(new NotificationMessage("Modified Game Files detected",
-                            "Dalamud has reported modified game files in your FFXIV installation. " +
-                            "You will be able to connect, but the synchronization functionality might be (partially) broken. " +
-                            "Exit the game and repair it through XIVLauncher to get rid of this message.",
+                            "Dalamud is reporting your FFXIV installation has modified game files. Any mods installed through TexTools will produce this message. " +
+                            "Mare Synchronos, Penumbra, and some other plugins assume your FFXIV installation is unmodified in order to work. " +
+                            "Synchronization with pairs/shells can break because of this. Exit the game, open XIVLauncher, click the arrow next to Log In" +
+                            "and select 'repair game files' to resolve this issue. Afterwards, do not install any mods with TexTools. Your plugin configurations will remain, as will mods enabled in Penumbra.",
                             NotificationType.Error, TimeSpan.FromSeconds(15)));
                 }
 
-                if (_dalamudUtil.IsLodEnabled)
+                if (_dalamudUtil.IsLodEnabled && !_naggedAboutLod)
                 {
+                    _naggedAboutLod = true;
                     Logger.LogWarning("Model LOD is enabled during connection");
                     if (!_mareConfigService.Current.DebugStopWhining)
                     {
                         Mediator.Publish(new NotificationMessage("Model LOD is enabled",
                             "You have \"Use low-detail models on distant objects (LOD)\" enabled. Having model LOD enabled is known to be a reason to cause " +
-                            "random crashes when loading in or rendering modded pairs. Disable LOD while using Namazu: " +
+                            "random crashes when loading in or rendering modded pairs. Disabling LOD has a very low performance impact. Disable LOD while using Namazu: " +
                             "Go to XIV Menu -> System Configuration -> Graphics Settings and disable the model LOD option.", NotificationType.Warning, TimeSpan.FromSeconds(15)));
                     }
+                }
+
+                if (_naggedAboutLod && !_dalamudUtil.IsLodEnabled)
+                {
+                    _naggedAboutLod = false;
                 }
 
                 await LoadIninitialPairsAsync().ConfigureAwait(false);
@@ -319,6 +323,8 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
             }
         }
     }
+
+    private bool _naggedAboutLod = false;
 
     public Task CyclePauseAsync(UserData userData)
     {
@@ -366,7 +372,6 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
 
         _healthCheckTokenSource?.Cancel();
         _ = Task.Run(async () => await StopConnectionAsync(ServerState.Disconnected).ConfigureAwait(false));
-        _zoneSwitchSemaphore.Dispose();
         _connectionCancellationTokenSource?.Cancel();
     }
 
@@ -536,15 +541,6 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
 
     private async Task<bool> RefreshTokenAsync(CancellationToken ct)
     {
-        int zoneSwitchWaitAttempts = 0;
-        while (_zoneSwitchSemaphore.CurrentCount == 0 && zoneSwitchWaitAttempts <= 15)
-        {
-            Logger.LogTrace("Refresh Token - Waiting for Zone Switch Semaphore, attempt {attempt}", zoneSwitchWaitAttempts++);
-            await Task.Delay(TimeSpan.FromSeconds(1), ct).ConfigureAwait(false);
-        }
-
-        Logger.LogDebug("Checking token");
-
         bool requireReconnect = false;
         try
         {
