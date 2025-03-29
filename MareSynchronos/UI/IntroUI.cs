@@ -201,7 +201,7 @@ public partial class IntroUi : WindowMediatorSubscriberBase
 
             if (ImGui.Button("Join the Namazu Sync Discord"))
             {
-                Util.OpenLink("https://discord.gg/Tgbt2qaydQ");
+                Util.OpenLink("https://discord.gg/gtszQgHpBD");
             }
 
             UiSharedService.TextWrapped("For all other non official services you will have to contact the appropriate service provider how to obtain a secret key.");

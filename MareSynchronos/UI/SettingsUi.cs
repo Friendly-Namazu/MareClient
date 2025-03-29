@@ -1914,7 +1914,7 @@ public class SettingsUi : WindowMediatorSubscriberBase
         ImGui.SameLine();
         if (ImGui.Button("Namazu Sync Discord"))
         {
-            Util.OpenLink("https://discord.gg/Tgbt2qaydQ");
+            Util.OpenLink("https://discord.gg/gtszQgHpBD");
         }
         ImGui.Separator();
         if (ImGui.BeginTabBar("mainTabBar"))
