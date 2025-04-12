@@ -48,6 +48,7 @@ public class DalamudUtilService : IHostedService, IMediatorSubscriber
     private bool _sentBetweenAreas = false;
     private readonly Dictionary<ulong, string> _aidCache = [];
     private readonly Lazy<uint> _aid;
+    private int _aidCounter = 0;
 
     public DalamudUtilService(ILogger<DalamudUtilService> logger, IClientState clientState, IObjectTable objectTable, IFramework framework,
         IGameGui gameGui, ICondition condition, IDataManager gameData, ITargetManager targetManager, IGameConfig gameConfig, ISigScanner sigScanner,
@@ -143,7 +144,17 @@ public class DalamudUtilService : IHostedService, IMediatorSubscriber
         get => TargetSystem.Instance()->GPoseTarget;
         set => TargetSystem.Instance()->GPoseTarget = value;
     }
-    public unsafe IGameObject? GposeTargetGameObject => GposeTarget == null ? null : _objectTable[GposeTarget->ObjectIndex];
+
+    private unsafe bool HasGposeTarget => GposeTarget != null;
+    private unsafe int GPoseTargetIdx => !HasGposeTarget ? -1 : GposeTarget->ObjectIndex;
+
+    public async Task<IGameObject?> GetGposeTargetGameObjectAsync()
+    {
+        if (!HasGposeTarget)
+            return null;
+
+        return await _framework.RunOnFrameworkThread(() => _objectTable[GPoseTargetIdx]).ConfigureAwait(true);
+    }
     public bool IsAnythingDrawing { get; private set; } = false;
     public bool IsInCutscene { get; private set; } = false;
     public bool IsInGpose { get; private set; } = false;
@@ -302,11 +313,13 @@ public class DalamudUtilService : IHostedService, IMediatorSubscriber
 
     private unsafe string GetHashedAccIdFromPlayerPointer(nint ptr)
     {
-        if (ptr == nint.Zero) return string.Empty;
+        if (ptr == nint.Zero) return "UNK" + _aidCounter++;
         var aid = ((BattleChara*)ptr)->Character.AccountId;
         if (!_aidCache.TryGetValue(aid, out string? hash))
         {
-            _aidCache[aid] = hash = unchecked((uint)(((((BattleChara*)GetPlayerCharacter().Address)->Character.AccountId ^ aid) >> 31) ^ _aid.Value)).ToString().GetHash256();
+            var player = GetPlayerCharacter();
+            if (player == null) return "UNK" + _aidCounter++;
+            _aidCache[aid] = hash = unchecked((uint)(((((BattleChara*)player.Address)->Character.AccountId ^ aid) >> 31) ^ _aid.Value)).ToString().GetHash256();
         }
         return hash;
     }
