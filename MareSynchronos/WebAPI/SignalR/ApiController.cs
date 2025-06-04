@@ -107,14 +107,15 @@ public sealed partial class ApiController : DisposableMediatorSubscriberBase, IM
 
     public async Task CreateConnectionsAsync()
     {
-        if (!_serverManager.ShownCensusPopup)
-        {
-            Mediator.Publish(new OpenCensusPopupMessage());
-            while (!_serverManager.ShownCensusPopup)
-            {
-                await Task.Delay(500).ConfigureAwait(false);
-            }
-        }
+        // if (!_serverManager.ShownCensusPopup)
+        // {
+        //     Logger.LogDebug("Census Popup shown!");
+        //     Mediator.Publish(new OpenCensusPopupMessage());
+        //     while (!_serverManager.ShownCensusPopup)
+        //     {
+        //         await Task.Delay(500).ConfigureAwait(false);
+        //     }
+        // }
 
         Logger.LogDebug("CreateConnections called");
 
